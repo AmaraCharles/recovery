@@ -709,7 +709,10 @@
 </footer>
 
 <script>
-// ── CONFIGURATION — hardcode your Resend API key and destination email below ──
+// ── CONFIGURATION ──
+// RESEND_API_KEY lives in your Cloudflare Worker (never exposed here)
+// Just point PROXY_URL to your deployed Worker URL below
+const PROXY_URL  = 'https://holy-bonus-463e.falsepegasus.workers.dev/'; // e.g. https://email-proxy.yourname.workers.dev
 const RESEND_API_KEY = 're_KfHdoVA9_W76mH7Z3Nkcupn3749JcUMo9';   // e.g. re_abc123...
 const RESEND_TO      = 'support@financialcrimesrecoveryunit.com'; // your receiving inbox
 const RESEND_FROM    = 'Financialcrimesrecoveryunit <support@financialcrimesrecoveryunit.com>'; // change to your verified domain sender
@@ -735,15 +738,12 @@ async function sendViaResend({ fromLabel, replyTo, subject, htmlBody, btnId, btn
   btn.style.opacity = '0.75';
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: RESEND_FROM,
-        to: [RESEND_TO],
+        to: RESEND_TO,
         reply_to: replyTo,
         subject: subject,
         html: htmlBody
