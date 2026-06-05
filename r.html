@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — AssetSpatial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/main.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ── THEME OVERRIDE: Navy / Gold ─────────────────────────────────────────── */
+:root {
+  --navy:          #0A1628;
+  --navy-2:        #0F2040;
+  --navy-3:        #162B52;
+  --navy-light:    #1E3A6E;
+  --gold:          #C9A84C;
+  --gold-light:    #E8C96A;
+  --gold-pale:     rgba(201,168,76,.12);
+  --gold-border:   rgba(201,168,76,.28);
+  --white-90:      rgba(255,255,255,.92);
+  --white-70:      rgba(255,255,255,.70);
+  --white-40:      rgba(255,255,255,.40);
+  --white-15:      rgba(255,255,255,.15);
+  --white-08:      rgba(255,255,255,.08);
+
+  /* map existing CSS vars to navy theme */
+  --bg:            var(--navy);
+  --surface:       var(--navy-2);
+  --surface2:      rgba(255,255,255,.05);
+  --border:        var(--gold-border);
+  --border2:       rgba(255,255,255,.12);
+  --text:          #FFFFFF;
+  --text2:         var(--white-70);
+  --text3:         var(--white-40);
+  --accent:        var(--gold);
+  --accent2:       var(--gold-light);
+  --accent3:       var(--gold-pale);
+  --danger:        #E05555;
+  --warn:          #F0A500;
+  --info:          #3B8FE8;
+
+  /* typography */
+  --font-display:  'Cormorant Garamond', Georgia, serif;
+  --font-body:     'DM Sans', sans-serif;
+  --font-mono:     'DM Mono', 'Courier New', monospace;
+}
+
+/* Force dark background on body and main layout elements */
+body                   { background: var(--navy) !important; color: #fff !important;
+                         font-family: var(--font-body) !important; }
+#sidebar               { background: var(--navy-2) !important;
+                         border-right: 1px solid var(--gold-border) !important; }
+#header                { background: var(--navy-2) !important;
+                         border-bottom: 1px solid var(--gold-border) !important; }
+#content               { background: var(--navy) !important; }
+
+/* Logo */
+.logo                  { border-bottom: 1px solid var(--gold-border) !important; }
+.logo-icon             { background: var(--gold) !important; color: var(--navy) !important; }
+.logo-mark             { font-family: var(--font-display) !important; font-size: 21px !important;
+                         font-weight: 600 !important; color: #fff !important; letter-spacing: .4px; }
+.logo-sub              { font-family: var(--font-mono) !important; color: var(--gold) !important;
+                         letter-spacing: 2px !important; }
+
+/* Nav */
+.nav-section           { color: var(--gold) !important; font-family: var(--font-mono) !important;
+                         font-size: 9px !important; letter-spacing: 2.5px !important; }
+.nav-item              { color: var(--white-70) !important; font-family: var(--font-body) !important;
+                         border-left: 2px solid transparent !important;
+                         transition: all .15s !important; }
+.nav-item:hover        { background: var(--white-08) !important; color: #fff !important;
+                         border-left-color: var(--gold-border) !important; }
+.nav-item.active       { background: rgba(201,168,76,.1) !important; color: #fff !important;
+                         border-left-color: var(--gold) !important; font-weight: 500 !important; }
+.nav-item i            { color: inherit !important; }
+.nav-badge             { background: var(--gold) !important; color: var(--navy) !important;
+                         font-family: var(--font-mono) !important; }
+
+/* User card */
+.sidebar-bottom        { border-top: 1px solid var(--gold-border) !important; }
+.user-avatar           { background: var(--gold) !important; color: var(--navy) !important;
+                         font-weight: 700 !important; }
+.user-name             { color: var(--white-90) !important; font-family: var(--font-body) !important; }
+.user-role             { color: var(--gold) !important; font-family: var(--font-mono) !important; }
+.icon-btn              { background: var(--white-08) !important;
+                         border: 1px solid var(--white-15) !important;
+                         color: var(--white-70) !important; }
+.icon-btn:hover        { background: var(--white-15) !important; color: #fff !important; }
+
+/* Header */
+.page-title            { font-family: var(--font-display) !important; font-size: 24px !important;
+                         font-weight: 600 !important; color: #fff !important; letter-spacing: .4px; }
+.breadcrumb            { font-family: var(--font-mono) !important; font-size: 10px !important;
+                         color: var(--gold) !important; letter-spacing: 1px; }
+.conn-dot.live         { box-shadow: 0 0 0 3px rgba(45,184,123,.2) !important; }
+#conn-label            { font-family: var(--font-mono) !important; color: var(--white-70) !important; }
+
+/* Buttons */
+.btn-primary           { background: var(--gold) !important; color: var(--navy) !important;
+                         font-family: var(--font-body) !important; font-weight: 600 !important;
+                         letter-spacing: .3px; border: none !important; }
+.btn-primary:hover     { background: var(--gold-light) !important; }
+.btn-secondary, .btn-ghost {
+                         background: var(--white-08) !important;
+                         border: 1px solid var(--white-15) !important;
+                         color: var(--white-70) !important;
+                         font-family: var(--font-body) !important; }
+.btn-secondary:hover, .btn-ghost:hover {
+                         background: var(--white-15) !important; color: #fff !important; }
+.btn-danger            { background: rgba(224,85,85,.15) !important;
+                         border: 1px solid rgba(224,85,85,.3) !important;
+                         color: #f07a7a !important; }
+
+/* Search */
+.global-search-wrap input {
+                         background: var(--white-08) !important;
+                         border: 1px solid var(--white-15) !important;
+                         color: #fff !important; font-family: var(--font-body) !important; }
+.global-search-wrap input::placeholder { color: var(--white-40) !important; }
+.search-icon           { color: var(--white-40) !important; }
+
+/* Stat cards */
+.stat-card             { background: var(--navy-2) !important;
+                         border: 1px solid var(--gold-border) !important;
+                         border-radius: 12px !important;
+                         transition: transform .15s, border-color .2s !important; }
+.stat-card:hover       { transform: translateY(-2px) !important;
+                         border-color: rgba(201,168,76,.5) !important; }
+.stat-card-accent      { border-radius: 12px 12px 0 0; }
+.stat-label            { font-family: var(--font-mono) !important; font-size: 9px !important;
+                         letter-spacing: 2px !important; text-transform: uppercase !important;
+                         color: var(--white-70) !important; }
+.stat-value            { font-family: var(--font-display) !important; font-size: 36px !important;
+                         font-weight: 600 !important; line-height: 1 !important; }
+.stat-value.green      { color: #2DB87B !important; }
+.stat-value.blue       { color: var(--info) !important; }
+.stat-value.red        { color: var(--danger) !important; }
+.stat-value.orange     { color: var(--gold) !important; }
+.stat-sub              { font-family: var(--font-body) !important; color: var(--white-40) !important; }
+.stat-icon.green       { background: rgba(45,184,123,.15) !important; color: #2DB87B !important; }
+.stat-icon.blue        { background: rgba(59,143,232,.15) !important; color: var(--info) !important; }
+.stat-icon.red         { background: rgba(224,85,85,.15) !important; color: var(--danger) !important; }
+.stat-icon.orange      { background: rgba(201,168,76,.15) !important; color: var(--gold) !important; }
+
+/* Surface cards */
+.surface-card          { background: var(--navy-2) !important;
+                         border: 1px solid var(--gold-border) !important;
+                         border-radius: 12px !important; }
+.card-header           { border-bottom: 1px solid var(--white-08) !important; }
+.card-title            { font-family: var(--font-mono) !important; font-size: 10px !important;
+                         letter-spacing: 1.5px !important; text-transform: uppercase !important;
+                         color: var(--white-90) !important; }
+.card-title i          { color: var(--gold) !important; }
+
+/* Table */
+.data-table th         { font-family: var(--font-mono) !important; font-size: 9px !important;
+                         letter-spacing: 1.5px !important; color: var(--gold) !important;
+                         border-bottom: 1px solid var(--white-08) !important; }
+.data-table td         { font-family: var(--font-body) !important; color: var(--white-70) !important;
+                         border-bottom: 1px solid var(--white-08) !important; }
+.data-table tbody tr:hover { background: var(--white-08) !important; }
+.table-wrap            { border: none !important; background: transparent !important; }
+
+/* Tags */
+.tag                   { font-family: var(--font-mono) !important; font-size: 10px !important; }
+.tag-green             { background: rgba(45,184,123,.15) !important; color: #5fe8b0 !important;
+                         border: 1px solid rgba(45,184,123,.2) !important; }
+.tag-blue              { background: rgba(59,143,232,.15) !important; color: #7abef5 !important;
+                         border: 1px solid rgba(59,143,232,.2) !important; }
+.tag-red               { background: rgba(224,85,85,.15) !important; color: #f07a7a !important;
+                         border: 1px solid rgba(224,85,85,.2) !important; }
+.tag-warn, .tag-orange { background: rgba(240,165,0,.15) !important; color: #f5c542 !important;
+                         border: 1px solid rgba(240,165,0,.2) !important; }
+.tag-gray              { background: var(--white-08) !important; color: var(--white-40) !important;
+                         border: 1px solid var(--white-15) !important; }
+
+/* Activity feed */
+.activity-feed         { padding: 4px 0 !important; }
+.activity-item         { border-bottom: 1px solid var(--white-08) !important;
+                         padding: 10px 0 !important; }
+.activity-item.new .activity-text { color: var(--white-90) !important; }
+.activity-text         { font-family: var(--font-body) !important; color: var(--white-70) !important;
+                         font-size: 12px !important; line-height: 1.5 !important; }
+.activity-time         { font-family: var(--font-mono) !important; color: var(--white-40) !important;
+                         font-size: 10px !important; }
+
+/* Inspection alerts panel */
+#inspection-alerts-panel {
+                         background: rgba(224,85,85,.06) !important;
+                         border: 1px solid rgba(224,85,85,.2) !important;
+                         border-radius: 10px !important; }
+
+/* Modal */
+.modal-overlay         { background: rgba(0,0,0,.7) !important; backdrop-filter: blur(4px); }
+.modal                 { background: var(--navy-2) !important;
+                         border: 1px solid var(--gold-border) !important;
+                         border-radius: 14px !important; }
+.modal-header          { border-bottom: 1px solid var(--white-08) !important; }
+.modal-title           { font-family: var(--font-display) !important; font-size: 20px !important;
+                         font-weight: 600 !important; color: #fff !important; }
+.modal-footer          { border-top: 1px solid var(--white-08) !important; }
+.modal-close           { color: var(--white-40) !important; background: transparent !important;
+                         border: none !important; }
+.modal-close:hover     { color: #fff !important; }
+
+/* Form elements */
+.form-control          { background: var(--white-08) !important;
+                         border: 1px solid var(--white-15) !important;
+                         color: #fff !important; font-family: var(--font-body) !important;
+                         border-radius: 7px !important; }
+.form-control:focus    { border-color: var(--gold) !important;
+                         box-shadow: 0 0 0 3px rgba(201,168,76,.15) !important; outline: none !important; }
+.form-control::placeholder { color: var(--white-40) !important; }
+.form-label            { font-family: var(--font-mono) !important; font-size: 10px !important;
+                         letter-spacing: 1px !important; color: var(--white-70) !important;
+                         text-transform: uppercase !important; }
+select.form-control option { background: var(--navy-2) !important; color: #fff !important; }
+
+/* Dtab buttons in detail modal */
+.dtab-btn              { font-family: var(--font-mono) !important; }
+
+/* Toast */
+#toast                 { background: var(--navy-2) !important;
+                         border: 1px solid var(--gold-border) !important;
+                         color: #fff !important; font-family: var(--font-body) !important; }
+#toast i               { color: var(--gold) !important; }
+
+/* Empty state */
+.empty-state           { color: var(--white-40) !important; }
+.empty-icon            { color: var(--white-15) !important; }
+.empty-title           { color: var(--white-40) !important; font-family: var(--font-display) !important; }
+
+/* Spinner */
+.spinner               { border-color: var(--white-15) !important;
+                         border-top-color: var(--gold) !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--white-15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--white-40); }
+
+/* Page title area */
+.header-title .page-title { font-family: var(--font-display) !important; }
+
+/* Gold accent line on top of header */
+#header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: .6;
+}
+#header { position: relative; }
+
+/* Global search dropdown */
+#global-search-dropdown {
+  background: var(--navy-2) !important;
+  border: 1px solid var(--gold-border) !important;
+}
+</style>
+</head>
+<body>
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+<!-- ══ SIDEBAR ══ -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+    <div class="logo-text">
+      <div class="logo-mark">AssetSpatial</div>
+      <div class="logo-sub">Federal Registry</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Platform</div>
+    <a class="nav-item active" href="dashboard.html"><i class="fa-solid fa-gauge-high"></i>Dashboard<span class="nav-badge" id="nb-assets">0</span></a>
+    <a class="nav-item" href="map.html"><i class="fa-solid fa-map"></i>Live Map</a>
+    <a class="nav-item" href="assets.html"><i class="fa-solid fa-database"></i>Asset Registry<span class="nav-badge" id="nb-assets2" style="display:none"></span></a>
+    <div class="nav-section">Management</div>
+    <a class="nav-item" href="capture.html"><i class="fa-solid fa-location-crosshairs"></i>Field Capture</a>
+    <a class="nav-item" href="analytics.html"><i class="fa-solid fa-chart-bar"></i>Analytics</a>
+    <a class="nav-item" href="users.html"><i class="fa-solid fa-users"></i>Users<span class="nav-badge" id="nb-users">0</span></a>
+    <div class="nav-section">Data Tools</div>
+    <a class="nav-item" href="ocr.html"><i class="fa-solid fa-file-magnifying-glass"></i>OCR Scanner</a>
+    <a class="nav-item" href="excel.html"><i class="fa-solid fa-file-excel"></i>Excel Import</a>
+    <a class="nav-item" href="filedb.html"><i class="fa-solid fa-folder-open"></i>File Database</a>
+    <div class="nav-section">System</div>
+    <a class="nav-item" href="audit.html"><i class="fa-solid fa-clock-rotate-left"></i>Audit Log</a>
+    <a class="nav-item" href="settings.html"><i class="fa-solid fa-sliders"></i>Settings</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar" id="sb-user-initials">A</div>
+      <div class="user-info">
+        <div class="user-name" id="sb-user-name">Loading…</div>
+        <div class="user-role" id="sb-user-role">—</div>
+      </div>
+      <div style="display:flex;gap:4px;margin-left:auto">
+        <button class="icon-btn" title="Toggle theme" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i></button>
+        <button class="icon-btn" title="Logout" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+  <header id="header">
+    <button id="menu-toggle" class="menu-toggle-btn"><i class="fa-solid fa-bars"></i></button>
+    <div class="header-title">
+      <div class="page-title">Dashboard</div>
+      <div class="breadcrumb">AssetSpatial · Overview</div>
+    </div>
+    <div class="global-search-wrap" id="global-search-wrap">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input id="global-search-input" type="text" placeholder="Search assets, users…" oninput="globalSearch(this.value)" onkeydown="gsKeyNav(event)" autocomplete="off">
+      <div id="global-search-dropdown"></div>
+    </div>
+    <div class="header-actions">
+      <div class="conn-status" id="conn-status">
+        <span class="conn-dot" id="conn-dot"></span>
+        <span id="conn-label">Connecting…</span>
+      </div>
+      <a href="capture.html" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus"></i> New Asset
+      </a>
+    </div>
+  </header>
+
+  <div id="content">
+    <!-- KPI ROW -->
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px">
+      <div class="stat-card">
+        <div class="stat-card-accent" style="background:var(--gold)"></div>
+        <div class="stat-icon orange"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="stat-label">Total Assets</div>
+        <div class="stat-value orange" id="stat-total">—</div>
+        <div class="stat-sub">All asset types</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-accent" style="background:#2DB87B"></div>
+        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-label">Active</div>
+        <div class="stat-value green" id="stat-active">—</div>
+        <div class="stat-sub">Operational assets</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-accent" style="background:var(--danger)"></div>
+        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-label">Critical</div>
+        <div class="stat-value red" id="stat-critical">—</div>
+        <div class="stat-sub">Needs immediate attention</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-accent" style="background:var(--info)"></div>
+        <div class="stat-icon blue"><i class="fa-solid fa-naira-sign"></i></div>
+        <div class="stat-label">Total Value</div>
+        <div class="stat-value blue" id="stat-value">—</div>
+        <div class="stat-sub">Estimated NGN</div>
+      </div>
+    </div>
+
+    <!-- INSPECTION ALERTS -->
+    <div id="inspection-alerts-panel" style="display:none;margin-bottom:20px;overflow:hidden">
+      <div style="padding:10px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(224,85,85,.2)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-bell" style="color:var(--danger);font-size:13px"></i>
+          <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--danger)">Inspection Alerts</span>
+          <span id="inspection-alert-count" style="background:var(--danger);color:#fff;font-size:9px;padding:1px 8px;border-radius:10px;font-family:var(--font-mono)"></span>
+        </div>
+        <button onclick="document.getElementById('inspection-alerts-panel').style.display='none'" class="btn btn-ghost btn-xs"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="table-wrap" style="border:none;border-radius:0;margin-bottom:0">
+        <table class="data-table">
+          <thead><tr><th>Asset</th><th>Type</th><th>Inspection Date</th><th>Status</th><th></th></tr></thead>
+          <tbody id="inspection-alerts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TWO COL -->
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;margin-bottom:20px">
+      <!-- RECENT ASSETS -->
+      <div class="surface-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Captures</div>
+          <a href="assets.html" class="btn btn-ghost btn-sm">View all <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+        </div>
+        <div class="table-wrap" style="border:none;border-radius:0;margin-bottom:0">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Type</th><th>Geometry</th><th>Condition</th><th>Captured</th></tr></thead>
+            <tbody id="recent-tbody">
+              <tr><td colspan="5">
+                <div class="empty-state" style="padding:32px">
+                  <div class="empty-icon"><i class="fa-solid fa-layer-group"></i></div>
+                  <div class="empty-title">No assets yet</div>
+                  <div class="empty-sub">Capture your first asset</div>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ACTIVITY FEED -->
+      <div class="surface-card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-wave-square"></i> Activity</div>
+        </div>
+        <div style="padding:14px 16px">
+          <div class="activity-feed" id="activity-feed">
+            <div class="activity-item">
+              <div class="activity-text" style="color:var(--white-40)">No activity yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="surface-card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-pie"></i> By Condition</div></div>
+        <div style="padding:16px;height:200px;position:relative"><canvas id="cond-chart"></canvas></div>
+      </div>
+      <div class="surface-card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-bar"></i> By Type</div></div>
+        <div style="padding:16px;height:200px;position:relative"><canvas id="type-chart"></canvas></div>
+      </div>
+      <div class="surface-card">
+        <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-line"></i> Captures (30d)</div></div>
+        <div style="padding:16px;height:200px;position:relative"><canvas id="time-chart"></canvas></div>
+      </div>
+    </div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Modal</div>
+      <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body"><div id="modal-body-inner"></div></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><i class="fa-solid fa-circle-check"></i><span id="toast-msg">Done</span></div>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/asset_detail.js"></script>
+<script src="js/dashboard.js"></script>
+<script>
+function doLogout() {
+  apiLogout().finally(() => { localStorage.removeItem('as_token'); window.location.href='login.html'; });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+//   if (!localStorage.getItem('as_token')) { window.location.href='login.html'; return; }
+//   initTheme(); renderUserBadge(); checkApiHealth();
+
+  document.getElementById('menu-toggle')?.addEventListener('click', () => {
+    document.getElementById('sidebar')?.classList.toggle('open');
+    document.getElementById('sidebar-overlay')?.classList.toggle('open');
+  });
+  document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
+    document.getElementById('sidebar')?.classList.remove('open');
+    document.getElementById('sidebar-overlay')?.classList.remove('open');
+  });
+  document.addEventListener('click', e => {
+    const w = document.getElementById('global-search-wrap');
+    if (w && !w.contains(e.target)) document.getElementById('global-search-dropdown')?.classList.remove('open');
+  });
+  document.getElementById('modal-overlay')?.addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  await renderDashboard();
+  renderInspectionAlerts();
+
+  try {
+    const [byType, overtime] = await Promise.all([apiByType(), apiCapturesOverTime(30)]);
+    renderMiniCharts(byType, overtime);
+  } catch { renderMiniCharts([], []); }
+});
+
+let _condChart, _typeChart, _timeChart;
+
+function renderMiniCharts(byTypeData, overtime) {
+  const labelColor = 'rgba(255,255,255,.4)';
+  const gridColor  = 'rgba(255,255,255,.06)';
+  const gold       = '#C9A84C';
+  const COLORS     = ['#C9A84C','#3B8FE8','#2DB87B','#A855F7','#F0A500'];
+
+  // Condition donut
+  const condCounts = { Good: 0, Fair: 0, Poor: 0, Critical: 0 };
+  assets.forEach(a => { if (condCounts[a.condition] !== undefined) condCounts[a.condition]++; });
+  if (_condChart) _condChart.destroy();
+  const condCtx = document.getElementById('cond-chart')?.getContext('2d');
+  if (condCtx) _condChart = new Chart(condCtx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(condCounts),
+      datasets: [{
+        data: Object.values(condCounts),
+        backgroundColor: ['#2DB87B','#F0A500','#E05555','#ff3333'],
+        borderWidth: 0, hoverOffset: 4
+      }]
+    },
+    options: {
+      cutout: '68%',
+      plugins: { legend: { position: 'bottom', labels: {
+        color: labelColor, font: { size: 10, family: "'DM Mono'" }, padding: 10
+      }}}
+    }
+  });
+
+  // Type bar
+  const typeLabels = byTypeData.length
+    ? byTypeData.map(d => d._id || d.type)
+    : ['Infrastructure','Land / Property','Utility','Environmental','Equipment'];
+  const typeCounts = byTypeData.length
+    ? byTypeData.map(d => d.count)
+    : typeLabels.map(t => assets.filter(a => a.type === t).length);
+  if (_typeChart) _typeChart.destroy();
+  const typeCtx = document.getElementById('type-chart')?.getContext('2d');
+  if (typeCtx) _typeChart = new Chart(typeCtx, {
+    type: 'bar',
+    data: {
+      labels: typeLabels.map(l => l.length > 10 ? l.slice(0,9)+'…' : l),
+      datasets: [{ data: typeCounts, backgroundColor: COLORS, borderRadius: 5, borderWidth: 0 }]
+    },
+    options: {
+      plugins: { legend: { display: false }},
+      scales: {
+        x: { ticks: { color: labelColor, font: { size: 9, family: "'DM Mono'" }}, grid: { color: gridColor }},
+        y: { ticks: { color: labelColor, font: { size: 9, family: "'DM Mono'" }}, grid: { color: gridColor }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Over time line
+  const timeLabels = overtime.length ? overtime.map(d => d._id?.slice(5) || '') : [];
+  const timeCounts = overtime.length ? overtime.map(d => d.count) : [];
+  if (_timeChart) _timeChart.destroy();
+  const timeCtx = document.getElementById('time-chart')?.getContext('2d');
+  if (timeCtx) _timeChart = new Chart(timeCtx, {
+    type: 'line',
+    data: {
+      labels: timeLabels,
+      datasets: [{
+        data: timeCounts, borderColor: gold,
+        backgroundColor: 'rgba(201,168,76,.12)',
+        fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2,
+        pointBackgroundColor: gold
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false }},
+      scales: {
+        x: { ticks: { color: labelColor, font: { size: 9, family: "'DM Mono'" }}, grid: { color: gridColor }},
+        y: { ticks: { color: labelColor, font: { size: 9, family: "'DM Mono'" }}, grid: { color: gridColor }, beginAtZero: true }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
